@@ -99,7 +99,24 @@ function AppleScreen:addElem(elem,currentH)
         return self:addText(elem,currentH)
     elseif type == "blank" then
         return self:addBlank(elem.amount,currentH)
+    elseif type == "MultiTextInput" then
+        return self:addMultiTextInput(elem,currentH)
     end 
+    
+    assert(false,"unknown type: "..type)
+end
+
+function AppleScreen:addMultiTextInput(elem,currentH)
+    local multi = AppleMultiText(50,currentH,WIDTH-100,elem.lines)
+    multi:translate(0,-multi.textbox.h)
+    self:add(multi)
+    table.insert(self.movableObjs,multi)
+    
+    if elem.tag then
+        self.taggedElems[elem.tag]=multi
+    end
+    
+    return currentH - multi.textbox.h
 end
 
 -- text that you can't interact with

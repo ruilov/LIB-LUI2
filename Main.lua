@@ -14,6 +14,8 @@ function setup()
                 {type="SimpleArrow", text = "Usage", rightText = "Two"},
             }},
             {type="blank",amount=30},
+            {type="MultiTextInput", lines = 5},
+            {type="blank",amount=30},
             {type="text",text="Now Discovereable"},
             {type="blank",amount=5},
             {type="block",elems = {
@@ -58,5 +60,6 @@ function touched(t)
 end
 
 function keyboard(key)
+    --print("keyboard!")
     p:keyboard(key)
 end

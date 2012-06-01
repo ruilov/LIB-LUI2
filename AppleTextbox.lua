@@ -20,6 +20,7 @@ function AppleTextbox:init(label,x,y,w,args)
     -- add the textbox
     local tx = tw+30
     self.textbox = Textbox(tx,0,w-tx-1)
+    self.textbox.background = color(0,0,0,0)
     self.textbox.cursorColor = color(0, 9, 255, 255)
     self.textbox.cursorWidth = 3
     self.textbox.cursorMarginY = -1
@@ -34,6 +35,7 @@ end
 function AppleTextbox:touched(t)
     Panel.touched(self,t)
     
+    -- deal with shadow text
     if not self.textbox.selected and self.textbox.text == "" and self.shadowText then
         self.textbox.text = self.shadowText
         self.textbox.textIsShadow = true
