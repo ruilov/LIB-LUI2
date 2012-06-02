@@ -14,6 +14,12 @@ function setup()
                 {type="SimpleArrow", text = "Usage", rightText = "Two"},
             }},
             {type="blank",amount=30},
+            {type="selector",elems={
+                {text="Rui"},
+                {text="Juli",tag="juli"},
+                {text="Conor"}
+            }},
+            {type="blank",amount=30},
             {type="MultiTextInput", lines = 5},
             {type="blank",amount=30},
             {type="text",text="Now Discovereable"},
