@@ -15,7 +15,9 @@ function AppleScreen:rebuild()
     self:removeAll()
     self.movableObjs = {}
     self.taggedElems = {}
+    local oldTopY = self.topY
     self:buildFromSchema()
+    self:setTopY(oldTopY)
 end
 
 function AppleScreen:touched(t)
@@ -24,24 +26,7 @@ function AppleScreen:touched(t)
         Panel.touched(self,t)
     elseif t.state == MOVING then
         local newY = self.topY + t.deltaY
-        if newY < 0 then newY = 0 end
-        if self.maxH < 0 then
-            if newY > -self.maxH+20 then newY = -self.maxH+20 end
-        else
-            newY = 0
-        end
-        
-        local deltaY = newY - self.topY
-        self.topY = newY
-        --print(self.topY)
-        
-        if deltaY ~= 0 then
-            for _,obj in ipairs(self.movableObjs) do
-                obj:translate(0,deltaY)
-                if obj.setUnpressed and obj.pressed then obj:setUnpressed() end
-            end
-        end
-
+        self:setTopY(newY)
         self.dontFwd = true
         Panel.touched(self,t)
     elseif t.state == ENDED then
@@ -51,7 +36,27 @@ function AppleScreen:touched(t)
     end
 end
 
+function AppleScreen:setTopY(newY)
+    if newY < 0 then newY = 0 end
+    if self.maxH < 0 then
+        if newY > -self.maxH+20 then newY = -self.maxH+20 end
+    else
+        newY = 0
+    end
+
+    local deltaY = newY - self.topY
+    self.topY = newY
+        
+    if deltaY ~= 0 then
+        for _,obj in ipairs(self.movableObjs) do
+            obj:translate(0,deltaY)
+            if obj.setUnpressed and obj.pressed then obj:setUnpressed() end
+        end
+    end
+end
+
 function AppleScreen:buildFromSchema()
+    self.topY = 0
     -- the background
     local back = TextBanner("",0,0,WIDTH,HEIGHT,
         {type="round",topColor=color(218,221,226),bottomColor=color(218,221,226)})
@@ -81,8 +86,7 @@ function AppleScreen:buildFromSchema()
         currentH = self:addElem(elem,currentH,p)
     end
     self.maxH = currentH
-    --print(self.maxH)
-    
+
     self:remove(title)
     self:add(title)
     if self.backBut then
@@ -101,9 +105,36 @@ function AppleScreen:addElem(elem,currentH)
         return self:addBlank(elem.amount,currentH)
     elseif type == "MultiTextInput" then
         return self:addMultiTextInput(elem,currentH)
+    elseif type=="selector" then
+        return self:addSelector(elem.elems,currentH)
     end 
     
     assert(false,"unknown type: "..type)
+end
+
+function AppleScreen:addSelector(elems,currentH)
+    local numElems = #elems
+    if numElems == 0 then return currentH end
+
+    local elemH = 50
+    for idx,elem in ipairs(elems) do
+        local type = "square"
+        if idx == 1 then type = "topRound"
+        elseif idx == #elems then type = "bottomRound" end
+        if #elems == 1 then type = "round" end
+        currentH = currentH - elemH
+        
+        local but = AppleSelector(elem.text,50,currentH,WIDTH-100,
+            {text={fontSize=21},type=type})
+          
+        if elem.rightText then but:setRightText(elem.rightText) end
+            
+        self:add(but)
+        table.insert(self.movableObjs,but)
+            
+        if elem.tag then self.taggedElems[elem.tag] = but end
+    end    
+    return currentH
 end
 
 function AppleScreen:addMultiTextInput(elem,currentH)
@@ -147,16 +178,14 @@ end
 function AppleScreen:addBlock(elems,currentH)
     local numElems = #elems
     if numElems == 0 then return currentH end
-    
-    local h = 50 * numElems
-    local y = currentH - h
 
+    local elemH = 50    
     for idx,elem in ipairs(elems) do
         local type = "square"
         if idx == 1 then type = "topRound"
         elseif idx == #elems then type = "bottomRound" end
         if #elems == 1 then type = "round" end
-        currentH = currentH - 50
+        currentH = currentH - elemH
         
         -- those things with a little arrow at the end
         if elem.type == "SimpleArrow" then    
@@ -170,8 +199,6 @@ function AppleScreen:addBlock(elems,currentH)
             end
             
             if elem.rightText then but:setRightText(elem.rightText) end
-            
-            --but:showHourGlass(true)
             
             self:add(but)
             table.insert(self.movableObjs,but)
