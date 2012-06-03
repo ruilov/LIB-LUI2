@@ -19,6 +19,14 @@ function TextButton:init(text,x,y,w,h,args)
     --print(self.pressed)
 end
 
+function TextButton:setColors(top,bot)
+    self.topColor = top
+    self.bottomColor = bot
+    self.banner.topColor = top
+    self.banner.bottomColor = bot
+    self.banner:recolor()
+end
+
 function TextButton:translate(dx,dy)
     Button.translate(self,dx,dy)
     self.banner:translate(dx,dy)
